@@ -1398,6 +1398,16 @@ def DL_DECaLSDR10RetrieverPhotoZ(RADeg, decDeg, halfBoxSizeDeg = 36.0/60.0, DR =
         token = optionsDict['token']
         RAMin, RAMax, decMin, decMax=astCoords.calcRADecSearchBox(RADeg, decDeg, halfBoxSizeDeg)
 
+        queryCount = 'select count(*) as nobj from ls_dr10.tractor where RA BETWEEN %.6f AND %.6f AND DEC BETWEEN %.6f AND %.6f' % (RAMin, RAMax, decMin, decMax)
+
+        countResult = qc.query(sql=queryCount, fmt='table')
+        nObjQuery = countResult['nobj'][0]
+
+        print("\nQuery will return %d objects..." %nObjQuery)
+
+        if nObjQuery == 0:
+            return None
+
         queryTractor = 'select ls_id, objid, ra, dec, dered_mag_g, dered_mag_r, dered_mag_i, dered_mag_z, dered_mag_w1, dered_mag_w2,\
                                  flux_ivar_g, flux_ivar_r, flux_ivar_i, flux_ivar_z, flux_ivar_w1, flux_ivar_w2,\
                                  snr_g, snr_r, snr_i, snr_z, snr_w1, snr_w2, type, maskbits, nest4096 from ls_dr10.tractor where\
@@ -1411,6 +1421,8 @@ def DL_DECaLSDR10RetrieverPhotoZ(RADeg, decDeg, halfBoxSizeDeg = 36.0/60.0, DR =
 
         queryZMatch = 'select t.*, z.ls_id, z.z_phot_mean, z.z_phot_mean_i, z_phot_median, z_phot_median_i, z.z_phot_std, z.z_phot_std_i, z.z_phot_l68, z.z_phot_l68_i, z.z_phot_l95, z.z_phot_l95_i, z.z_phot_u68, z.z_phot_u68_i, z.z_phot_u95, z.z_phot_u95_i, z.z_spec\
                         from mydb://temptablezfetch AS t JOIN ls_dr10.photo_z AS z ON t.ls_id = z.ls_id'
+
+
 
         try:
             print("\nMatching with ls_dr10.photo_z table...")

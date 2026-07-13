@@ -1463,7 +1463,8 @@ def DL_DECaLSDR10RetrieverPhotoZ(RADeg, decDeg, halfBoxSizeDeg = 36.0/60.0, DR =
 
         queryTractor = 'select ls_id, objid, ra, dec, dered_mag_g, dered_mag_r, dered_mag_i, dered_mag_z, dered_mag_w1, dered_mag_w2,\
                                  flux_ivar_g, flux_ivar_r, flux_ivar_i, flux_ivar_z, flux_ivar_w1, flux_ivar_w2,\
-                                 snr_g, snr_r, snr_i, snr_z, snr_w1, snr_w2, type, maskbits, nest4096 from ls_dr10.tractor where\
+                                 snr_g, snr_r, snr_i, snr_z, snr_w1, snr_w2, type, maskbits, nest4096,\
+                                    ref_cat, parallax, parallax_ivar, pmra, pmra_ivar, pmdec, pmdec_ivar from ls_dr10.tractor where\
                                  RA BETWEEN %.6f AND %.6f AND DEC BETWEEN %.6f and %.6f' % (RAMin, RAMax, decMin, decMax)
         try:
             print("\nQuerying from ls_dr10.tractor table...")
@@ -1472,10 +1473,10 @@ def DL_DECaLSDR10RetrieverPhotoZ(RADeg, decDeg, halfBoxSizeDeg = 36.0/60.0, DR =
             print("... WARNING: datalab query failed to get %s" % (outFileName))
             return None
 
-        queryZMatch = 'select t.*, z.ls_id, z.z_phot_mean, z.z_phot_mean_i, z_phot_median, z_phot_median_i, z.z_phot_std, z.z_phot_std_i, z.z_phot_l68, z.z_phot_l68_i, z.z_phot_l95, z.z_phot_l95_i, z.z_phot_u68, z.z_phot_u68_i, z.z_phot_u95, z.z_phot_u95_i, z.z_spec\
+        queryZMatch = 'select t.*, z.ls_id, z.z_phot_mean, z.z_phot_mean_i, z_phot_median, z_phot_median_i, \
+            z.z_phot_std, z.z_phot_std_i, z.z_phot_l68, z.z_phot_l68_i, z.z_phot_l95, z.z_phot_l95_i,\
+                  z.z_phot_u68, z.z_phot_u68_i, z.z_phot_u95, z.z_phot_u95_i, z.z_spec\
                         from mydb://temptablezfetch AS t JOIN ls_dr10.photo_z AS z ON t.ls_id = z.ls_id'
-
-
 
         try:
             print("\nMatching with ls_dr10.photo_z table...")
@@ -1514,8 +1515,20 @@ def DL_DECaLSDR10RetrieverPhotoZ(RADeg, decDeg, halfBoxSizeDeg = 36.0/60.0, DR =
         photDict['decDeg']=row['dec']
         photDict['zphoto']=row['z_phot_mean']
         photDict['zphotoErr']=row['z_phot_std']
+        photDict['zphoto_median']=row['z_phot_median']
+        photDict['zphoto_l68']=row['z_phot_l68']
+        photDict['zphoto_u68']=row['z_phot_u68']
+        photDict['zphoto_l95']=row['z_phot_l95']
+        photDict['zphoto_u95']=row['z_phot_u95']
         photDict['zspec']=row['z_spec']
         photDict['nest4096']=row['nest4096']
+        photDict['type']=row['type']
+        photDict['ref_cat']=row['ref_cat']
+        photDict['parallax']=row['parallax']
+        photDict['parallax_ivar']=row['parallax_ivar']
+        photDict['pmra']=row['pmra']
+        photDict['pmra_ivar']=row['pmra_ivar']
+        photDict['pmdec']=row['pmdec']  
         # Photometric uncertainties now the same as regular DECaLS retriever
         for b in bands:
             if row['snr_%s' % (b)] > 0:

@@ -1299,6 +1299,59 @@ def DECaLSDR10Retriever(RADeg, decDeg, halfBoxSizeDeg = 36.0/60.0, DR = None, op
     return stuff
 
 #-------------------------------------------------------------------------------------------------------------
+def DL_SDSSDR16SpecObjRetriever(RADeg, decDeg, halfBoxSizeDeg = 36.0/60.0, DR = None, optionsDict = {}):
+    """SDSS DR16 SpecObj retriever, using NOAO datalab.
+
+
+    """
+
+    makeCacheDir()
+    if 'altCacheDir' in list(optionsDict.keys()):
+        cacheDir=optionsDict['altCacheDir']
+    else:
+        cacheDir=CACHE_DIR
+    if os.path.exists(cacheDir) == False:
+        os.makedirs(cacheDir, exist_ok = True)
+
+    outFileName=cacheDir+os.path.sep+"DL_SDSSDR16SpecObj_%.4f_%.4f_%.2f.fits" % (RADeg, decDeg, halfBoxSizeDeg)
+    if os.path.exists(outFileName) == False:
+        RAMin, RAMax, decMin, decMax=astCoords.calcRADecSearchBox(RADeg, decDeg, halfBoxSizeDeg)
+        try:
+            # result=qc.query(sql='select bestobjid, ra, dec, z, zerr,  from sdss_dr16.specobj where\
+            #                      RA BETWEEN %.6f AND %.6f AND DEC BETWEEN %.6f and %.6f' % (RAMin, RAMax, decMin, decMax),
+            #                 fmt = 'table')
+            result = qc.query(sql='''
+                                    SELECT
+                                        s.bestobjid,
+                                        s.ra,
+                                        s.dec,
+                                        s.z,
+                                        s.zerr,
+                                        p.petromag_r
+                                    FROM sdss_dr16.specobj AS s
+                                    JOIN sdss_dr16.photoplate AS p
+                                        ON s.bestobjid = p.objid
+                                    WHERE s.ra BETWEEN %.6f AND %.6f
+                                    AND s.dec BETWEEN %.6f AND %.6f
+                                ''' % (RAMin, RAMax, decMin, decMax),
+                                fmt='table')
+            result.write(outFileName, overwrite = True)
+        except:
+            result=None
+            print("... WARNING: datalab query failed to get %s" % (outFileName))
+    else:
+        if 'fetchAndCacheOnly' in optionsDict.keys() and optionsDict['fetchAndCacheOnly'] == True:
+            print("... already retrieved: %s ..." % (outFileName))
+            return None
+        print("... reading from cache: %s ..." % (outFileName))
+        result=atpy.Table().read(outFileName)
+
+    if result is None:
+        return None
+
+    return result
+
+#-------------------------------------------------------------------------------------------------------------
 def DL_DECaLSDR10Retriever(RADeg, decDeg, halfBoxSizeDeg = 36.0/60.0, DR = None, optionsDict = {}):
     """DECaLS DR10 retriever, using NOAO datalab.
 

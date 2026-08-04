@@ -1513,8 +1513,8 @@ def DL_DECaLSDR10RetrieverPhotoZ(RADeg, decDeg, halfBoxSizeDeg = 36.0/60.0, DR =
         photDict['id']=row['ls_id'] # ls_id is unique
         photDict['RADeg']=row['ra']
         photDict['decDeg']=row['dec']
-        photDict['zphoto']=row['z_phot_mean']
-        photDict['zphotoErr']=row['z_phot_std']
+        photDict['zphoto_mean']=row['z_phot_mean']
+        photDict['zphoto_std']=row['z_phot_std']
         photDict['zphoto_median']=row['z_phot_median']
         photDict['zphoto_l68']=row['z_phot_l68']
         photDict['zphoto_u68']=row['z_phot_u68']
